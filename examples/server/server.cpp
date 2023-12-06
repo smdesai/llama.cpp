@@ -190,6 +190,7 @@ struct slot_params
 {
     bool stream       = true;
     bool cache_prompt = false; // remember the prompt to avoid reprocessing all prompt
+    bool is_xgen      = false;
 
     uint32_t seed      = -1; // RNG seed
     int32_t  n_keep    =  0; // number of tokens to keep from initial prompt
@@ -582,6 +583,9 @@ struct llama_server_context
             return false;
         }
 
+        printf("load_model: is_xgen = %d", params.is_xgen);
+        llama_set_model_type(model, params.is_xgen);
+
         if (multimodal) {
             const int n_embd_clip = clip_n_mmproj_embd(clp_ctx);
             const int n_embd_llm  = llama_n_embd(model);
@@ -711,6 +715,7 @@ struct llama_server_context
             slot->oaicompat_model = "";
         }
 
+        slot->params.is_xgen          = json_value(data, "xgen",              false);
         slot->params.stream           = json_value(data, "stream",            false);
         slot->params.cache_prompt     = json_value(data, "cache_prompt",      false);
         slot->params.n_predict        = json_value(data, "n_predict",         default_params.n_predict);
@@ -767,6 +772,9 @@ struct llama_server_context
         {
             slot->sparams.logit_bias[llama_token_eos(model)] = -INFINITY;
         }
+
+        printf("is_xgen: %d\n", slot->params.is_xgen);
+        llama_set_model_type(model, slot->params.is_xgen);
 
         const auto &logit_bias = data.find("logit_bias");
         if (logit_bias != data.end() && logit_bias->is_array())
@@ -2321,6 +2329,10 @@ static void server_params_parse(int argc, char **argv, server_params &sparams,
             log_set_target(stdout);
             LOG_INFO("logging to file is disabled.", {});
         }
+        else if (arg == "-X")
+        {
+            params.is_xgen = true;
+        }
         else
         {
             fprintf(stderr, "error: unknown argument: %s\n", arg.c_str());
@@ -2404,6 +2416,10 @@ json oaicompat_completion_params_parse(
     llama_params["repeat_last_n"]     = json_value(body, "repeat_last_n", 0);
     llama_params["ignore_eos"]        = json_value(body, "ignore_eos", false);
     llama_params["tfs_z"]             = json_value(body, "tfs_z", 0.0);
+    llama_params["xgen"]              = json_value(body, "xgen", false);
+
+    // -sd-
+    printf("llama_params xgen: %s\n", llama_params["xgen"] ? "xgen" : "no xgen");
 
     if (llama_params.count("grammar") != 0) {
         llama_params["grammar"] = json_value(body, "grammar", json::object());

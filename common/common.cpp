@@ -696,7 +696,10 @@ bool gpt_params_parse_ex(int argc, char ** argv, gpt_params & params) {
                 break;
             }
         // End of Parse args for logging parameters
+
 #endif // LOG_DISABLE_LOGS
+        } else if (arg == "-X") {
+            params.is_xgen = true;
         } else {
             throw std::invalid_argument("error: unknown argument: " + arg);
         }
@@ -850,6 +853,7 @@ void gpt_print_usage(int /*argc*/, char ** argv, const gpt_params & params) {
     printf("                        draft model for speculative decoding (default: %s)\n", params.model.c_str());
     printf("  -ld LOGDIR, --logdir LOGDIR\n");
     printf("                        path under which to save YAML logs (no logging if unset)\n");
+    printf("  -X                    Salesforce Xgen model\n");
     printf("\n");
 #ifndef LOG_DISABLE_LOGS
     log_print_usage();
@@ -900,6 +904,8 @@ struct llama_model_params llama_model_params_from_gpt_params(const gpt_params & 
     mparams.tensor_split    = params.tensor_split;
     mparams.use_mmap        = params.use_mmap;
     mparams.use_mlock       = params.use_mlock;
+
+    mparams.is_xgen         = params.is_xgen;
 
     return mparams;
 }
