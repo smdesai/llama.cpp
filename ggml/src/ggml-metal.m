@@ -326,11 +326,11 @@ static struct ggml_backend_metal_context * ggml_metal_init(int n_cb) {
     // - if that fails, return NULL
     {
         NSBundle * bundle = nil;
-#ifdef SWIFT_PACKAGE
-        bundle = SWIFTPM_MODULE_BUNDLE;
-#else
+//#ifdef SWIFT_PACKAGE
+//      bundle = SWIFTPM_MODULE_BUNDLE;
+//#else
         bundle = [NSBundle bundleForClass:[GGMLMetalClass class]];
-#endif
+//#endif
 
         NSError * error = nil;
 
