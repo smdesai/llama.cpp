@@ -12,6 +12,7 @@ var sources = [
     "common/build-info.cpp",
     "common/common.cpp",
     "common/grammar-parser.cpp",
+    "common/json-schema-to-grammar.cpp",
     "common/sampling.cpp",
     "ggml/src/ggml.c",
     "ggml/src/ggml-alloc.c",
